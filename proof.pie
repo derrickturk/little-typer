@@ -1,0 +1,130 @@
+#lang pie
+
+(claim + (→ Nat Nat Nat))
+(define +
+  (λ (x y)
+    (iter-Nat x
+      y
+      (λ (acc) (add1 acc)))))
+
+(claim +1=add1
+  (∏ ((n Nat))
+    (= Nat (+ 1 n) (add1 n))))
+(define +1=add1
+  (λ (n)
+    (same (add1 n))))
+
+(claim incr (→ Nat Nat))
+(define incr
+  (λ (n) (iter-Nat n 1 (+ 1))))
+
+(claim step-incr=add1
+  (∏ ((n Nat))
+    (→ (= Nat (incr n) (add1 n))
+      (= Nat (incr (add1 n)) (add1 (add1 n))))))
+(define step-incr=add1
+  (λ (n prf)
+    (cong prf
+      (the (→ Nat Nat) (λ (x) (add1 x))))))
+
+(claim incr=add1
+  (∏ ((n Nat))
+    (= Nat (incr n) (add1 n))))
+(define incr=add1
+  (λ (n)
+    (ind-Nat
+      n
+      (λ (n) (= Nat (incr n) (add1 n)))
+      (same 1)
+      step-incr=add1)))
+
+(claim replace-step-incr=add1
+  (∏ ((n Nat))
+    (→ (= Nat (incr n) (add1 n))
+      (= Nat (add1 (incr n)) (add1 (add1 n))))))
+(define replace-step-incr=add1
+  (λ (n prf)
+    (replace prf
+      (λ (x) (= Nat (add1 (incr n)) (add1 x)))
+      (same (add1 (incr n))))))
+
+(claim replace-incr=add1
+  (∏ ((n Nat))
+    (= Nat (incr n) (add1 n))))
+(define replace-incr=add1
+  (λ (n)
+    (ind-Nat
+      n
+      (λ (n) (= Nat (incr n) (add1 n)))
+      (same 1)
+      step-incr=add1)))
+
+(claim double (→ Nat Nat))
+(define double
+  (λ (n)
+    (iter-Nat
+      n
+      0
+      (+ 2))))
+
+(claim twice (→ Nat Nat))
+(define twice
+  (λ (n) (+ n n)))
+
+(claim add1+=+add1
+  (∏ ((n Nat) (m Nat))
+    (= Nat (add1 (+ n m)) (+ n (add1 m)))))
+(define add1+=+add1
+  (λ (n m)
+    (ind-Nat
+      n
+      (λ (n) (= Nat (add1 (+ n m)) (+ n (add1 m))))
+      (same (add1 m))
+      (λ (n-1 prf)
+        (cong prf
+          (the (→ Nat Nat) (λ (x) (add1 x))))))))
+
+(claim step-twice=double
+  (∏ ((n-1 Nat))
+    (→ (= Nat (twice n-1) (double n-1))
+      (= Nat (twice (add1 n-1)) (double (add1 n-1))))))
+(define step-twice=double
+  (λ (n-1 prf)
+    (replace
+      (add1+=+add1 n-1 n-1)
+      (λ (m)
+        (= Nat (add1 m) (add1 (add1 (double n-1)))))
+      (cong prf (+ 2)))))
+
+(claim twice=double
+  (∏ ((n Nat))
+    (= Nat (twice n) (double n))))
+(define twice=double
+  (λ (n)
+    (ind-Nat
+      n
+      (λ (k) (= Nat (twice k) (double k)))
+      (same 0)
+      step-twice=double)))
+
+(claim double-Vec
+  (∏ ((A U) (n Nat))
+    (→ (Vec A n) (Vec A (double n)))))
+(define double-Vec
+  (λ (A n)
+    (ind-Nat
+      n
+      (λ (k) (→ (Vec A k) (Vec A (double k))))
+      (λ (xs) vecnil)
+      (λ (n f)
+        (λ (xs)
+          (vec:: (head xs) (vec:: (head xs) (f (tail xs)))))))))
+
+(claim twice-Vec
+  (∏ ((A U) (n Nat))
+    (→ (Vec A n) (Vec A (twice n)))))
+(define twice-Vec
+  (λ (A n xs)
+    (replace (symm (twice=double n))
+      (λ (k) (Vec A k))
+      (double-Vec A n xs))))

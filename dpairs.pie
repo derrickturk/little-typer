@@ -1,0 +1,133 @@
+#lang pie
+
+(claim list-length
+  (∏ ((A U))
+    (→ (List A) Nat)))
+(define list-length
+  (λ (A xs)
+    (rec-List
+      xs
+      0
+      (λ (y ys n) (add1 n)))))
+
+; my first blind attempt
+
+; for a given list, what type of Vec do we make?
+(claim motive-list-to-vec
+  (∏ ((A U))
+    (→ (List A) U)))
+(define motive-list-to-vec
+  (λ (A xs)
+    (Vec A (list-length A xs))))
+
+(claim list-to-vec
+  (∏ ((A U))
+    (→ (List A)
+      (Σ ((n Nat))
+        (Vec A n)))))
+(define list-to-vec
+  (λ (A xs)
+    (cons
+      (list-length A xs)
+      (ind-List
+        xs
+        (motive-list-to-vec A)
+        vecnil
+        (λ (y ys v) (vec:: y v))))))
+
+; the "direct" approach shown in the book
+
+(claim list→vec
+  (∏ ((A U))
+    (→ (List A)
+      (Σ ((n Nat))
+        (Vec A n)))))
+(define list→vec
+  (λ (A xs)
+    (rec-List
+      xs
+      (the (Σ ((n Nat)) (Vec A n)) (cons 0 vecnil))
+      (λ (y ys p)
+        (cons
+          (add1 (car p))
+          (vec:: y (cdr p)))))))
+
+; but neither actually ensures correctness...
+
+(claim good-list-to-vec
+  (∏ ((A U) (xs (List A)))
+    (Vec A (list-length A xs))))
+(define good-list-to-vec
+  (λ (A xs)
+    (ind-List
+      xs
+      (motive-list-to-vec A)
+      vecnil
+      (λ (y ys v) (vec:: y v)))))
+
+; now some more stuff for vecs
+
+(claim repeat
+  (∏ ((A U) (n Nat))
+    (→ A (Vec A n))))
+(define repeat
+  (λ (A n x)
+    (ind-Nat
+      n
+      (λ (n) (Vec A n))
+      vecnil
+      (λ (n xs) (vec:: x xs)))))
+
+(claim + (→ Nat Nat Nat))
+(define +
+  (λ (x y)
+    (iter-Nat x
+      y
+      (λ (acc) (add1 acc)))))
+
+(claim vec-++
+  (∏ ((A U) (m Nat) (n Nat))
+    (→ (Vec A m) (Vec A n)
+      (Vec A (+ m n)))))
+(define vec-++
+  (λ (A m n xs ys)
+    (ind-Vec
+      m
+      xs
+      (λ (k v) (Vec A (+ k n)))
+      ys
+      (λ (k e es result) (vec:: e result)))))
+
+(claim vec-to-list
+  (∏ ((A U) (n Nat))
+    (→ (Vec A n) (List A))))
+(define vec-to-list
+  (λ (A n xs)
+    (ind-Vec
+      n
+      xs
+      (λ (k v) (List A))
+      nil
+      (λ (k e es l) (:: e l)))))
+
+(claim list-vec-roundtrip=
+  (∏ ((A U) (xs (List A)))
+    (= (List A)
+      xs
+      (vec-to-list
+        A
+        (list-length A xs)
+        (good-list-to-vec A xs)))))
+
+(define list-vec-roundtrip=
+  (λ (A xs)
+    (ind-List
+      xs
+      (λ (xs)
+        (= (List A)
+          xs
+          (vec-to-list A (list-length A xs) (good-list-to-vec A xs))))
+      (same nil)
+      (λ (e es prf)
+        (cong prf 
+          (the (→ (List A) (List A)) (λ (ys) (:: e ys))))))))

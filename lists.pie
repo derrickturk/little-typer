@@ -1,0 +1,55 @@
+#lang pie
+
+(claim length
+  (∏ ((A U))
+    (→ (List A) Nat)))
+(define length
+  (λ (A xs)
+    (rec-List xs
+      0
+      (λ (x xs len) (add1 len)))))
+
+(claim + (→ Nat Nat Nat))
+(define +
+  (λ (x y)
+    (iter-Nat x
+      y
+      (λ (acc) (add1 acc)))))
+
+(claim sum
+  (→ (List Nat) Nat))
+(define sum
+  (λ (xs)
+    (rec-List xs
+      0
+      (λ (x xs acc) (+ x acc))))) 
+
+(claim ++
+  (∏ ((A U))
+    (→ (List A) (List A)
+      (List A))))
+(define ++
+  (λ (A xs ys)
+    (rec-List xs
+      ys
+      (λ (x xs acc) (:: x acc)))))
+
+(claim snoc
+  (∏ ((A U))
+    (→ A (List A)
+      (List A))))
+(define snoc
+  (λ (A x xs)
+    (rec-List xs
+      (:: x nil)
+      (λ (x xs acc) (:: x acc)))))
+
+(claim reverse
+  (∏ ((A U))
+    (→ (List A)
+      (List A))))
+(define reverse
+  (λ (A xs)
+    (rec-List xs
+      (the (List A) nil)
+      (λ (x xs acc) (snoc A x acc)))))

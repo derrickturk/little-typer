@@ -1,0 +1,22 @@
+; run with EXACTLY racket -l pie -t pears.pie -i
+#lang pie
+
+(claim Pear U)
+(define Pear (Pair Nat Nat))
+
+(claim + (→ Nat Nat Nat))
+(define +
+  (λ (x y)
+    (iter-Nat x
+      y
+      (λ (acc) (add1 acc)))))
+
+(claim Pear-+ (→ Pear Pear Pear))
+(define Pear-+
+  (λ (x y)
+    (cons (+ (car x) (car y)) (+ (cdr x) (cdr y)))))
+
+(claim Pear-+-Pi (∏ ((x Pear) (y Pear)) Pear))
+(define Pear-+-Pi
+  (λ (x y)
+    (cons (+ (car x) (car y)) (+ (cdr x) (cdr y)))))

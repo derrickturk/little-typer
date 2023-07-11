@@ -1,0 +1,88 @@
+#lang pie
+
+; silly authors, errors go on the Left
+
+(claim Maybe (→ U U))
+(define Maybe (λ (A) (Either Trivial A)))
+
+(claim nothing (∏ ((A U)) (Maybe A)))
+(define nothing (λ (A) (left sole)))
+
+(claim just (∏ ((A U)) (→ A (Maybe A))))
+(define just (λ (A x) (right x)))
+
+(claim safe-head
+  (∏ ((A U))
+    (→ (List A)
+      (Maybe A))))
+(define safe-head
+  (λ (A xs)
+    (rec-List
+      xs
+      (nothing A)
+      (λ (y ys h) (just A y)))))
+
+(claim safe-tail
+  (∏ ((A U))
+    (→ (List A)
+      (Maybe (List A)))))
+(define safe-tail
+  (λ (A xs)
+    (rec-List
+      xs
+      (nothing (List A))
+      (λ (y ys h) (just (List A) ys)))))
+
+(claim safe-ix
+  (∏ ((A U))
+    (→ Nat (List A)
+      (Maybe A))))
+(define safe-ix
+  (λ (A ix)
+    (rec-Nat
+      ix
+      (safe-head A)
+      (λ (n f xs)
+        (ind-Either
+          (safe-tail A xs)
+          (λ (e) (Maybe A))
+          (λ (l) (left l))
+          (λ (r) (f r)))))))
+
+(claim Fin (→ Nat U))
+(define Fin
+  (λ (n)
+    (iter-Nat
+      n
+      Absurd
+      Maybe)))
+
+(claim fzero
+  (∏ ((n Nat))
+    (Fin (add1 n))))
+(define fzero
+  (λ (n) (nothing (Fin n))))
+
+(claim fadd1
+  (∏ ((n Nat))
+    (→ (Fin n) (Fin (add1 n)))))
+(define fadd1
+  (λ (n f)
+    (just (Fin n) f)))
+
+(claim vec-ix
+  (∏ ((A U) (n Nat))
+    (→ (Fin n) (Vec A n)
+      A)))
+(define vec-ix
+  (λ (A n)
+    (ind-Nat
+      n
+      (λ (k) (→ (Fin k) (Vec A k) A))
+      (λ (ix xs) (ind-Absurd ix A)) ; can't happen!
+      (λ (n f ix xs)
+        (ind-Either
+          ix
+          (λ (e) A)
+          (λ (l) (head xs))
+          (λ (r) (f r (tail xs))))))))

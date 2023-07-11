@@ -1,0 +1,3 @@
+#lang pie
+(claim xyz TODO)
+(claim xyzzy (∏ ((n Nat)) TODO))

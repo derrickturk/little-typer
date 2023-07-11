@@ -1,0 +1,28 @@
+#lang pie
+
+(claim + (→ Nat Nat Nat))
+(define +
+  (λ (x y)
+    (iter-Nat x
+      y
+      (λ (acc) (add1 acc)))))
+
+(claim repeat
+  (→ (→ Nat Nat) Nat
+    Nat))
+(define repeat
+  (λ (f n)
+    (iter-Nat
+      n
+      (f 1)
+      (λ (iter) (f iter)))))
+
+(claim ackermann
+  (→ Nat Nat
+    Nat))
+(define ackermann
+  (λ (n)
+    (iter-Nat
+      n
+      (+ 1)
+      (λ (ack) (repeat ack)))))

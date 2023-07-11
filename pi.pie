@@ -1,0 +1,24 @@
+#lang pie
+
+(claim rev-pair
+  (∏ ((A U) (D U))
+    (→ (Pair A D) (Pair D A))))
+(define rev-pair
+  (λ (A D p)
+    (cons (cdr p) (car p))))
+
+(claim elim-Pair
+  (∏ ((A U) (D U) (X U))
+    (→ (Pair A D) (→ A D X) X)))
+(define elim-Pair
+  (λ (A D X p f)
+    (f (car p) (cdr p))))
+
+(claim rev-pair2
+  (∏ ((A U) (D U))
+    (→ (Pair A D) (Pair D A))))
+(define rev-pair2
+  (λ (A D p)
+    (elim-Pair A D (Pair D A)
+      p
+      (λ (a d) (cons d a)))))

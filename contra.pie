@@ -1,0 +1,90 @@
+#lang pie
+
+(claim =consequence
+  (→ Nat Nat
+    U))
+(define =consequence
+  (λ (m n)
+    (which-Nat m
+      (which-Nat n
+        Trivial
+        (λ (n-1) Absurd))
+      (λ (m-1)
+        (which-Nat n
+          Absurd
+          (λ (n-1) (= Nat m-1 n-1)))))))
+
+(claim =consequence-same
+  (∏ ((n Nat))
+    (=consequence n n)))
+(define =consequence-same
+  (λ (n)
+    (ind-Nat n
+      (λ (k) (=consequence k k))
+      sole
+      (λ (n-1 prf) (same n-1)))))
+
+(claim use-Nat=
+  (∏ ((m Nat) (n Nat))
+    (→ (= Nat m n)
+      (=consequence m n))))
+(define use-Nat=
+  (λ (m n prf)
+    (replace prf
+      (λ (k) (=consequence m k))
+      (=consequence-same m))))
+
+(claim zero-not-add1
+  (∏ ((n Nat))
+    (→ (= Nat zero (add1 n))
+      Absurd)))
+(define zero-not-add1
+  (λ (n prf)
+    (use-Nat= zero (add1 n) prf)))
+
+(claim donut-absurdity
+  (→ (= Nat 0 6)
+    (= Atom 'powdered 'glazed)))
+(define donut-absurdity
+  (λ (prf)
+    (ind-Absurd (use-Nat= 0 6 prf)
+      (= Atom 'powdered 'glazed))))
+
+(claim sub1=
+  (∏ ((m Nat) (n Nat))
+    (→ (= Nat (add1 m) (add1 n))
+      (= Nat m n))))
+(define sub1=
+  (λ (m n)
+    (use-Nat= (add1 m) (add1 n))))
+
+(claim one-not-six
+  (→ (= Nat 1 6) Absurd))
+(define one-not-six
+  (λ (prf)
+    (zero-not-add1 4 (sub1= 0 5 prf))))
+
+(claim front
+  (∏ ((A U) (n Nat))
+    (→ (Vec A (add1 n))
+      A)))
+(define front
+  (λ (A n xs)
+    ((ind-Vec (add1 n) xs
+       (λ (k ys)
+         (∏ ((j Nat))
+           (→ (= Nat k (add1 j))
+             A)))
+       (λ (k prf)
+         (ind-Absurd (zero-not-add1 k prf) A))
+       (λ (k y ys f j prf) y))
+      n (same (add1 n)))))
+
+(claim pem-not-false
+  (∏ ((X U))
+    (→ (→ (Either X (→ X Absurd))
+         Absurd)
+      Absurd)))
+(define pem-not-false
+  (λ (X contra)
+    (contra (right (λ (x) (contra (left x)))))))

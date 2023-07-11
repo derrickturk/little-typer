@@ -1,0 +1,55 @@
+#lang pie
+
+(claim first
+  (∏ ((A U) (n Nat))
+    (→ (Vec A (add1 n))
+      A)))
+(define first
+  (λ (A n xs)
+    (head xs)))
+
+(claim rest
+  (∏ ((A U) (n Nat))
+    (→ (Vec A (add1 n))
+      (Vec A n))))
+(define rest
+  (λ (A n xs)
+    (tail xs)))
+
+(claim repeat
+  (∏ ((A U) (n Nat))
+    (→ A (Vec A n))))
+(define repeat
+  (λ (A n x)
+    (ind-Nat
+      n
+      (λ (n) (Vec A n))
+      vecnil
+      (λ (n xs) (vec:: x xs)))))
+
+(claim last
+  (∏ ((A U) (n Nat))
+    (→ (Vec A (add1 n)) A)))
+(define last
+  (λ (A n)
+    (ind-Nat
+      n
+      (λ (n) (→ (Vec A (add1 n)) A))
+      (λ (xs) (head xs))
+      (λ (n f) (λ (xs) (f (tail xs)))))))
+
+(claim drop-last
+  (∏ ((A U) (n Nat))
+    (→ (Vec A (add1 n))
+      (Vec A n))))
+(define drop-last
+  (λ (A n)
+    (ind-Nat
+      n
+      (λ (n)
+        (→ (Vec A (add1 n))
+          (Vec A n)))
+      (λ (xs) vecnil)
+      (λ (n f)
+        (λ (xs)
+          (vec:: (head xs) (f (tail xs))))))))

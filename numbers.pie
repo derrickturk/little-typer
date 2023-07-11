@@ -1,0 +1,28 @@
+; run with EXACTLY racket -l pie -t numbers.pie -i
+#lang pie
+(claim add2 (→ Nat Nat))
+(define add2 (λ (x) (add1 (add1 x))))
+
+(claim + (→ Nat Nat Nat))
+(define +
+  (λ (x y)
+    (iter-Nat x
+      y
+      (λ (acc) (add1 acc)))))
+
+(claim * (→ Nat Nat Nat))
+(define *
+  (λ (x y)
+    (iter-Nat x
+      0
+      (λ (acc) (+ acc y)))))
+
+(claim fac-step (→ Nat Nat Nat))
+(define fac-step (λ (n-1 acc) (* (add1 n-1) acc)))
+
+(claim fac (→ Nat Nat))
+(define fac
+  (λ (x)
+    (rec-Nat x
+      1
+      fac-step)))
